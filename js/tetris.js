@@ -133,18 +133,32 @@ class TetrisGame {
         document.getElementById('restartBtn').addEventListener('click', () => this.restartGame());
         
         // Controles móveis
-        document.getElementById('leftBtn').addEventListener('click', () => this.movePiece(-1, 0));
-        document.getElementById('rightBtn').addEventListener('click', () => this.movePiece(1, 0));
-        document.getElementById('downBtn').addEventListener('click', () => this.movePiece(0, 1));
-        document.getElementById('rotateBtn').addEventListener('click', () => this.rotatePiece());
-        document.getElementById('dropBtn').addEventListener('click', () => this.dropPiece());
+        const setupMobileButton = (id, action) => {
+            const btn = document.getElementById(id);
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                btn.classList.add('active');
+                action();
+            });
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                btn.classList.remove('active');
+            });
+            btn.addEventListener('click', action);
+        };
         
-        // Prevenir seleção de texto nos botões móveis
-        const mobileButtons = document.querySelectorAll('.control-btn');
-        mobileButtons.forEach(btn => {
-            btn.addEventListener('touchstart', (e) => e.preventDefault());
-            btn.addEventListener('touchend', (e) => e.preventDefault());
-        });
+        setupMobileButton('leftBtn', () => this.movePiece(-1, 0));
+        setupMobileButton('rightBtn', () => this.movePiece(1, 0));
+        setupMobileButton('downBtn', () => this.movePiece(0, 1));
+        setupMobileButton('rotateBtn', () => this.rotatePiece());
+        setupMobileButton('dropBtn', () => this.dropPiece());
+        
+        // Prevenir rolagem da página ao tocar nos controles
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.classList.contains('control-btn')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     }
     
     generateNextPiece() {
@@ -514,5 +528,22 @@ class TetrisGame {
 // Inicializar o jogo quando a página carregar
 document.addEventListener('DOMContentLoaded', () => {
     const game = new TetrisGame();
+    
+    // Ajustar tamanho do canvas para dispositivos móveis
+    function resizeCanvas() {
+        const gameBoard = document.querySelector('.game-board');
+        const canvas = document.getElementById('gameCanvas');
+        
+        if (window.innerWidth <= 768) {
+            const maxWidth = gameBoard.clientWidth;
+            canvas.width = maxWidth;
+            canvas.height = maxWidth * 2; // Mantém proporção 1:2
+        } else {
+            canvas.width = 300;
+            canvas.height = 600;
+        }
+    }
+    
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 });
-
